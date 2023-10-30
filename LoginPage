@@ -1,0 +1,19 @@
+import sqlite3
+conn = sqlite3.connect('OS_employee.db')
+
+userEmail = "bob.moore@gmail.com"
+userPassword = "bob"
+
+with conn:
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT COUNT (*) FROM Employee WHERE(Email = '" + userEmail + "' AND Password = '" + userPassword + "') ")
+        results = cur.fetchone()
+
+        print(results[0])
+        if results[0]==1:
+            print("Login Successful")
+        else:
+            print("Login Unsuccessful")
+    except:
+        print("Connection Failed")
