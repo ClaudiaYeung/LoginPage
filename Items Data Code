@@ -1,0 +1,100 @@
+#MOST PROFITABLE
+import pandas as pd
+xl = pd.ExcelFile("SalesDataFull.xlsx")
+OrdersOnlyData = xl.parse("Orders")
+
+lines = "=" *25
+
+prod_prof_col = OrdersOnlyData[["Product Name","Profit"]]
+
+neg_products = prod_prof_col.loc[prod_prof_col["Profit"] < 0]
+print(lines)
+
+#Determine the most profitable category products
+categories = OrdersOnlyData.Category.unique()
+for category in categories:
+    cat_select = OrdersOnlyData.loc[OrdersOnlyData["Category"] == category]
+    cat_sub_prof = cat_select[["Category","Sub-Category", "Profit"]]
+    best_sub= cat_sub_prof.groupby("Sub-Category").sum().sort_values(by="Profit", ascending = False)
+    print("\nBest Sub-Category in the {} category: ".format(category))
+    print(lines)
+    print(best_sub.head(1))
+    
+print(lines)
+
+
+
+#LEAST PROFITABLE
+import pandas as pd
+xl = pd.ExcelFile("SalesDataFull.xlsx")
+OrdersOnlyData = xl.parse("Orders")
+
+lines = "=" *25
+
+prod_prof_col = OrdersOnlyData[["Product Name","Profit"]]
+
+
+
+#Determine the least profitable category products
+categories = OrdersOnlyData.Category.unique()
+for category in categories:
+    cat_select = OrdersOnlyData.loc[OrdersOnlyData["Category"] == category]
+    cat_sub_prof = cat_select[["Category","Sub-Category", "Profit"]]
+    best_sub= cat_sub_prof.groupby("Sub-Category").sum().sort_values(by="Profit", ascending = True)
+    print("\nLeast Profitable Sub-Category in the {} category: ".format(category))
+    print(lines)
+    print(best_sub.head(1))
+    
+print(lines)
+
+
+
+#TOP 15% PROFITABLE
+prod_prof =prod_prof_col.groupby(by="Product Name").sum().sort_values(by="Profit", ascending=False)
+
+prod_top2p = int(prod_prof.shape[0]*.15)
+print(prod_prof.head(prod_top2p))
+
+
+#PROFIT OF PRODUCTS THAT APPLIED MORE THAN 80% DISCOUNT
+
+
+
+#CUSTOMER DATA
+import pandas as pd
+xl = pd.ExcelFile("SalesDataFull.xlsx")
+Data = xl.parse("Orders")
+CustomerData = Data[["Customer Name", "Customer ID"]]
+MostRecent = CustomerData.sort_values(by="Customer ID", ascending=False)
+MostRecent = MostRecent.drop_duplicates()
+print(MostRecent.head(10))
+
+#CUSTOMERS WITH MOST AMOUNT OF PURCHASES:
+import pandas as pd 
+xl = pd.ExcelFile ("SalesDataFull.xlsx")
+Data = xl.parse("Orders")
+cus_num = Data ["Customer Name"].value_counts()
+total_cus=cus_num.shape
+cus_quant_col = Data[["Customer Name", "Quantity"]]
+bulk_freq = cus_quant_col.loc[cus_quant_col["Quantity"] <10]
+bulk_freq = bulk_freq["Customer Name"].value_counts()
+print("\nCustomer with Most Amount of Purchases:")
+print(bulk_freq.head(10))
+
+#CUSTOMER WITH LEAST AMOUNT OF PURCHASES
+xl = pd.ExcelFile("SalesDataFull.xlsx")
+data = xl.parse("Orders")
+cus_sales_col = data [["Customer Name", "Quantity"]]
+purch_size = cus_sales_col.groupby(["Customer Name"]).sum().sort_values(by="Quantity",ascending = True)
+purch_size = purch_size.head(1)
+print(purch_size)
+
+#CORRELATION BETWEEN TYPES OF CUSTOMERS
+import matplotlib.pyplot as plt
+import pandas as pd
+
+xl = pd.ExcelFile("SalesDataFull.xlsx")
+data = xl.parse("Orders")
+
+cus_reg_col = data [["Customer Name", "Region"]]
+reg = cus_reg_col.sort_values (by="Region", ascending = False)
