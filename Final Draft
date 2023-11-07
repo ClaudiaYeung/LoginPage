@@ -1,0 +1,322 @@
+import sqlite3
+conn = sqlite3.connect("OS_Employee.db")
+
+def registration():
+    with conn:
+        cur = conn.cursor()
+        try:
+            EmployeeID = input("Please enter an employee ID: ")
+            cur.execute("SELECT COUNT(*) FROM Employee WHERE (EmployeeID = '" + EmployeeID + "')")
+            results = cur.fetchone()
+            while not EmployeeID or results[0]==1:
+                cur.execute("SELECT COUNT (*) FROM Employee WHERE (EmployeeID = '" + EmployeeID + "')")
+                results = cur.fetchone()
+            firstname = input('What is your first name? ')
+            while not firstname:
+                firstname = input("Pleases type in a valid input: ")
+            lastname = input('What is your last name? ')
+            while not lastname:
+                lastname = input("Pleases type in a valid input: ")
+            email = input('Please enter your email:')
+            while not email:
+                email = input("Pleases type in a valid input: ")
+            password = input('Please input your password: ')
+            while not password:
+                password = input("Pleases type in a valid input: ")
+            cur.execute("INSERT INTO Employee VALUES ('" + EmployeeID + "','" + firstname + "','" + lastname + "','" + email + "','" + password + "')")
+            print ("\033[3;32m\033[1;m  Registration successful")
+        except:
+            print ("Connection failed")
+    return mainmenu()
+       	 
+#registration()
+
+def login():
+    import sqlite3
+    conn = sqlite3.connect("OS_Employee.db")
+    with conn:
+        cur = conn.cursor()
+        try:
+            userEmail = input ("Please enter your email:  ")
+            userPassword = input("Please enter your password:  ")
+            cur.execute("SELECT COUNT (*) FROM Employee WHERE(Email = '" + userEmail + "' AND Password = '" + userPassword + "')")
+            results = cur.fetchone()
+            print(results[0])
+            if results [0] ==1:
+                print("\033[3;32m\033[1;m  Login Successful")
+                report()
+            else:
+                print(" \033[3;31m\033[1;m Login Unsuccessful")
+                return mainmenu()
+        except:
+            print("Connection Failed")
+    	 
+
+
+def report ():
+    	print (""" \033[3;34m\033[1;m
+    	===OFFICE SOLUTIONS SALES REPORTS===
+   	 
+
+    	1. Product Data
+    	2. Region Data
+    	3. Customer Data
+    	4. Main Menu
+    	""")    
+    	opt = input("Please enter an input:  ")
+    	if opt== "1":
+        	product()
+    	if opt== "2":
+        	region()
+    	if opt== "3":
+        	customer()
+    	if opt== "4":
+        	mainmenu()
+   	 
+#login()
+    	 
+def product():
+    	print (""" \033[3;35m\033[1;m
+    	===OFFICE SOLUTIONS===
+	∆∆∆ PRODUCT DATA REPORT ∆∆∆
+   	 
+    	A. Most Profitable
+    	B. Least Profitable
+    	C. Top 15%
+    	D. Back to Report Data
+    	E. Back to Main Menu
+    	""")
+    	prod = input("Please enter an input: \033[3;34m\033[1;m ").upper()
+    	if prod== "A":
+        	inner_mostprofit()
+    	if prod== "B":
+        	leastprofit()
+    	if prod== "C":
+        	top15()
+    	if prod== "D":
+        	report()
+    	if prod== "E":
+        	mainmenu()
+          	 
+    	else:
+        	print("Invalid input")
+   	 
+       	 
+def inner_mostprofit():     	 
+    import pandas as pd
+    xl = pd.ExcelFile("SalesDataFull.xlsx")
+    OrdersOnlyData = xl.parse("Orders")
+    lines = "="*25
+   	 
+    prod_prof_col = OrdersOnlyData[["Product Name","Profit"]]
+   	 
+    neg_products = prod_prof_col.loc[prod_prof_col["Profit"] < 0]
+    print(lines)
+ 
+	#Determine the most profitable category products
+    categories = OrdersOnlyData.Category.unique()
+    for category in categories:
+        cat_select = OrdersOnlyData.loc[OrdersOnlyData["Category"] == category]
+        cat_sub_prof = cat_select[["Category","Sub-Category", "Profit"]]
+        best_sub= cat_sub_prof.groupby("Sub-Category").sum().sort_values(by="Profit", ascending = False)
+        print("\nBest Sub-Category in the {} category: ".format(category))
+        print(lines)
+        print(best_sub.head(1))
+       	 
+        print(lines)
+        return product()
+
+
+def leastprofit():
+#Determine the least profitable category products
+    import pandas as pd
+    xl = pd.ExcelFile("SalesDataFull.xlsx")
+    OrdersOnlyData = xl.parse("Orders")
+    
+    lines = "=" *25
+    
+    prod_prof_col = OrdersOnlyData[["Product Name","Profit"]]
+    print("\nThe least profitable category products")
+    
+    
+    categories = OrdersOnlyData.Category.unique()
+    for category in categories:
+        cat_select = OrdersOnlyData.loc[OrdersOnlyData["Category"] == category]
+        cat_sub_prof = cat_select[["Category","Sub-Category", "Profit"]]
+        best_sub= cat_sub_prof.groupby("Sub-Category").sum().sort_values(by="Profit", ascending = True)
+        print("\nLeast Profitable Sub-Category in the {} category: ".format(category))
+        print(lines)
+        print(best_sub.head(1))
+        print(lines)    
+  	 
+    return product()
+    
+def top15():    
+#TOP 15% PROFITABLE
+	import pandas as pd
+	xl = pd.ExcelFile("SalesDataFull.xlsx")
+	OrdersOnlyData = xl.parse("Orders")
+    
+	lines = "=" *25
+    
+	prod_prof_col = OrdersOnlyData[["Product Name","Profit"]]
+	prod_prof =prod_prof_col.groupby(by="Product Name").sum().sort_values(by="Profit", ascending=False)
+	print("\nTop 15% Most profitable product")
+	prod_top2p = int(prod_prof.shape[0]*.15)
+	print(prod_prof.head(prod_top2p))
+	print(lines)
+	return product()
+#product()
+
+def region():
+    	print (""" \033[3;35m\033[1;m
+    	===OFFICE SOLUTIONS===
+   	•••REGION DATA REPORT•••
+   	 
+    	A. Highest Tech Profit in Dollars (Top 3 Regions)
+    	B. Five Prime States that Buy the Most
+    	C. Three States That Buy the Least
+    	D. Back to Report Data
+    	E. Back to Main Menu
+    	""")
+    	prod = input("Please enter an input: \033[3;34m\033[1;m ").upper()
+    	if prod== "A":
+        	hightechprofit()
+    	if prod== "B":
+        	fiveprime()
+    	if prod== "C":
+        	threeleast()
+    	if prod== "D":
+        	report()
+    	if prod== "E":
+        	mainmenu()
+    	else:
+        	print("Invalid input")
+
+def hightechprofit():
+	import pandas as pd
+	xl = pd.ExcelFile("SalesDataFull.xlsx")
+	OrdersOnlyData = xl.parse("Orders")
+	lines = "="*30	#creates formatting
+ 	 
+	#Show the top three regions with the highest technology profit
+	region_cat_prof = OrdersOnlyData[["Region", "Category", "Profit"]]
+	tech_reg_prof = region_cat_prof.loc[region_cat_prof["Category"] == "Technology"]
+	region_tech_profits = tech_reg_prof.groupby(by="Region").sum().sort_values(by="Profit",ascending = False)
+	print("\n Top Tech Profit (in dollars) by Region")
+	print(region_tech_profits.head(3))
+	print (lines)
+	return region()
+
+def fiveprime() :    
+	import pandas as pd
+	xl = pd.ExcelFile("SalesDataFull.xlsx")
+	OrdersOnlyData = xl.parse("Orders")
+	lines = "="*30	#creates formatting
+    
+	#Show the top five states that purchase the most from our company.
+	state_quant_cols = OrdersOnlyData[["State", "Quantity"]]
+	state_purchases = state_quant_cols.groupby(by="State").sum().sort_values(by="Quantity", ascending = False)
+	print("\n 5 Prime States that Buy the Most Items")
+	print(state_purchases.head(5))
+	print(lines)
+	return region()
+    
+def threeleast() :   
+	import pandas as pd
+	xl = pd.ExcelFile("SalesDataFull.xlsx")
+	OrdersOnlyData = xl.parse("Orders")
+	lines = "="*30	#creates formatting
+	#Show the three states that purchase the least from our company
+	state_quant_cols = OrdersOnlyData[["State", "Quantity"]]
+	state_purchases = state_quant_cols.groupby(by="State").sum().sort_values(by="Quantity", ascending = True)
+	print("\n 3 States that Buy the Least Items")
+	print(state_purchases.head(3))
+	print(lines)
+	return region()
+#region()
+
+
+def customer():
+    	print (""" \033[3;35m\033[1;m
+    	===OFFICE SOLUTIONS===
+  	***CUSTOMER DATA REPORT***
+   	 
+    	A. Most Amount of Purchases
+    	B. Least Amount of Purchase
+    	C. Correlation between Customer and Region
+    	D. Back to Report Data
+    	E. Back to Main Menu
+    	""")
+    	cust = input("Please enter an input: \033[3;34m\033[1;m ").upper()
+    	if cust== "A":
+        	mostpurch()
+    	if cust== "B":
+        	leastpurch()
+    	if cust== "C":
+        	correlation()
+    	if cust== "D":
+        	report()
+    	if cust== "E":
+        	mainmenu()
+    
+    	else:
+        	print("Invalid input")
+ 
+def mostpurch():
+	#Determine customers with the most amount of purchases
+	import pandas as pd
+	xl = pd.ExcelFile ("SalesDataFull.xlsx")
+	Data = xl.parse("Orders")
+	cus_num = Data ["Customer Name"].value_counts()
+	total_cus=cus_num.shape
+	cus_quant_col = Data[["Customer Name", "Quantity"]]
+	bulk_freq = cus_quant_col.loc[cus_quant_col["Quantity"] <10]
+	bulk_freq = bulk_freq["Customer Name"].value_counts()
+	print("\nCustomer with Most Amount of Purchases:")
+	print(bulk_freq.head(10))
+	return customer()
+
+def leastpurch():
+	#Determine customers with the least amount of purchases
+	import pandas as pd
+	xl = pd.ExcelFile("SalesDataFull.xlsx")
+	data = xl.parse("Orders")
+	cus_sales_col = data [["Customer Name", "Quantity"]]
+	purch_size = cus_sales_col.groupby(["Customer Name"]).sum().sort_values(by="Quantity",ascending = True)
+	purch_size = purch_size.head(1)
+	print(purch_size)
+	return customer()
+
+	#Find the correlation between customers and region
+def correlation():
+	import pandas as pd
+    
+	xl = pd.ExcelFile("SalesDataFull.xlsx")
+	data = xl.parse("Orders")
+    
+	cus_reg_col = data [["Customer Name", "Region"]]
+	reg = cus_reg_col.sort_values (by="Region", ascending = False)
+	reg = reg.drop_duplicates()
+	print(reg.head(10))
+	return customer()
+#customer()
+
+
+    
+def mainmenu():
+    	print (""" \033[3;30m\033[1;m
+    	===MAIN MENU FOR OFFICE SOLUTIONS SALES REPORT===
+   	 
+    	1. Login
+    	2. Registration
+   	 
+    	""")
+    	ans = input("Please enter an input:  ")
+    	if ans== "1":
+        	login()
+    	if ans== "2":
+        	registration()
+    	else:
+        	print("Invalid input")
+mainmenu()
